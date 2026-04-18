@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ── Build stage ───────────────────────────────────────────────────────────────
-FROM node:22-alpine AS build
+FROM node:22-bookworm AS build
 WORKDIR /build
 
 # Layer-cache dependency installs separately from source copy.
@@ -15,7 +15,7 @@ COPY . .
 RUN npm run build
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
-FROM node:22-alpine AS runtime
+FROM node:22-bookworm AS runtime
 WORKDIR /app
 
 COPY --from=build /build/dist ./dist

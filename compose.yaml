@@ -10,16 +10,15 @@ services:
     environment:
       KANBAN_RUNTIME_HOST: "0.0.0.0"
       KANBAN_RUNTIME_PORT: "${CK_CONTAINER_PORT:-3484}"
-      # Prepend host agent binaries to PATH.
-      # /host-nvm  → CK_HOST_HOME/.nvm (codex and other node-global CLIs)
-      # /host-local → CK_HOST_HOME/.local (claude binary + share data)
-      PATH: "/host-nvm/versions/node/${CK_NVM_NODE_VERSION:-v24.14.1}/bin:/host-local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      # Prepend host agent binaries to PATH using the same absolute paths as the host.
+      PATH: "${CK_HOST_HOME}/.nvm/versions/node/${CK_NVM_NODE_VERSION:-v24.14.1}/bin:${CK_HOST_HOME}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     volumes:
       - kanban-data:/home/node/.cline
-      - "${CK_PROJECTS_ROOT:-/srv/projects}:/projects:rw"
-      # Host agent tool binaries — read-only so the container cannot modify them.
-      - "${CK_HOST_HOME:-/home/deploy}/.nvm:/host-nvm:ro"
-      - "${CK_HOST_HOME:-/home/deploy}/.local:/host-local:ro"
+      # Projects — same path inside and outside so absolute paths in git and config are valid.
+      - "${CK_PROJECTS_ROOT}:${CK_PROJECTS_ROOT}:rw"
+      # Host agent tool directories — same path both sides, read-only.
+      - "${CK_HOST_HOME}/.nvm:${CK_HOST_HOME}/.nvm:ro"
+      - "${CK_HOST_HOME}/.local:${CK_HOST_HOME}/.local:ro"
     env_file:
       - .env.ck-prod
 
