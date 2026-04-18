@@ -1,19 +1,18 @@
 [Unit]
 Description=Cline Kanban (ck-prod)
 Documentation=https://github.com/cline/kanban
-After=docker.service network-online.target
+After=network-online.target
 Wants=network-online.target
-Requires=docker.service
 
 [Service]
 Type=simple
 WorkingDirectory=/opt/ck-prod
-ExecStartPre=docker compose pull --quiet || true
-ExecStart=docker compose up --remove-orphans
-ExecStop=docker compose down
+EnvironmentFile=/opt/ck-prod/.env.ck-prod
+ExecStart=podman-compose up --remove-orphans
+ExecStop=podman-compose down
 Restart=on-failure
 RestartSec=10
 TimeoutStopSec=30
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

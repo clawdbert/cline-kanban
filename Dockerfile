@@ -22,7 +22,7 @@ COPY --from=build /build/dist ./dist
 COPY --from=build /build/package.json /build/package-lock.json ./
 
 # Production deps only.
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 # Run as the unprivileged node user (uid 1000) that ships in the base image.
 # HOME must be set so the app resolves ~/.cline/kanban/ correctly.

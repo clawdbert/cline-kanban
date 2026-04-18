@@ -5,6 +5,7 @@ services:
     build: .
     container_name: ck-prod
     restart: unless-stopped
+    userns_mode: keep-id
     ports:
       - "${CK_HOST_PORT:-3484}:${CK_CONTAINER_PORT:-3484}"
     environment:
