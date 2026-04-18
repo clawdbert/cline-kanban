@@ -1,0 +1,28 @@
+name: ck-prod
+
+services:
+  app:
+    build: .
+    container_name: ck-prod
+    restart: unless-stopped
+    ports:
+      - "${CK_HOST_PORT:-3484}:${CK_CONTAINER_PORT:-3484}"
+    environment:
+      KANBAN_RUNTIME_HOST: "0.0.0.0"
+      KANBAN_RUNTIME_PORT: "${CK_CONTAINER_PORT:-3484}"
+      # Prepend host agent binaries to PATH.
+      # /host-nvm  → CK_HOST_HOME/.nvm (codex and other node-global CLIs)
+      # /host-local → CK_HOST_HOME/.local (claude binary + share data)
+      PATH: "/host-nvm/versions/node/${CK_NVM_NODE_VERSION:-v24.14.1}/bin:/host-local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    volumes:
+      - kanban-data:/home/node/.cline
+      - "${CK_PROJECTS_ROOT:-/srv/projects}:/projects:rw"
+      # Host agent tool binaries — read-only so the container cannot modify them.
+      - "${CK_HOST_HOME:-/home/deploy}/.nvm:/host-nvm:ro"
+      - "${CK_HOST_HOME:-/home/deploy}/.local:/host-local:ro"
+    env_file:
+      - .env.ck-prod
+
+volumes:
+  kanban-data:
+    name: ck-prod-data

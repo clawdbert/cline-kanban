@@ -1,0 +1,16 @@
+node_modules
+web-ui/node_modules
+dist
+coverage
+.git
+.env.ck-prod
+test-results
+playwright-report
+.sentry-artifacts
+.worktrees
+*.md
+PRDs
+docs
+man
+grit
+test

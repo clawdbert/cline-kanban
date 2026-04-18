@@ -72,4 +72,59 @@ Click the branch name in the navbar to open a full git interface to browse commi
 
 ---
 
+## Server deployment (Docker)
+
+Run cline-kanban as a persistent service on a headless Linux server.
+
+### Quick start
+
+```bash
+# 1. Place the repo at /opt/ck-prod (symlink or copy)
+sudo ln -s /home/deploy/projects/cline-kanban /opt/ck-prod
+
+# 2. Configure
+cp /opt/ck-prod/.env.ck-prod.example /opt/ck-prod/.env.ck-prod
+# Edit .env.ck-prod — set CK_PROJECTS_ROOT and any other values
+
+# 3. Grant the container's node user (uid 1000) write access to your projects root
+sudo chown -R 1000:1000 /srv/projects   # adjust path to match CK_PROJECTS_ROOT
+
+# 4. Install the systemd unit
+sudo cp /opt/ck-prod/deploy/ck-prod.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now ck-prod
+```
+
+The service auto-starts on boot and restarts on failure. State is stored in the
+`ck-prod-data` Docker volume — `docker compose down` alone does not lose data.
+Only `docker volume rm ck-prod-data` destroys state.
+
+### Configuration
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `CK_HOST_PORT` | `3484` | Port bound on the host |
+| `CK_CONTAINER_PORT` | `3484` | Port the Node process listens on inside the container |
+| `CK_PROJECTS_ROOT` | `/srv/projects` | Host path bind-mounted as `/projects` |
+| `CK_HOST_HOME` | `/home/deploy` | Home directory whose `.nvm` and `.local` hold agent CLIs |
+| `CK_NVM_NODE_VERSION` | `v24.14.1` | NVM node version whose `bin/` is added to container PATH |
+| `POSTHOG_KEY` | _(empty)_ | PostHog API key; empty = telemetry off |
+| `POSTHOG_HOST` | `https://data.cline.bot` | PostHog ingest URL |
+
+Agent CLIs (`claude`, `codex`, etc.) are mounted read-only from the host at runtime —
+`$CK_HOST_HOME/.nvm` and `$CK_HOST_HOME/.local` — so no extra install step is needed.
+Update `CK_NVM_NODE_VERSION` whenever you upgrade the node version that owns those CLIs.
+
+### Manual compose commands
+
+```bash
+cd /opt/ck-prod
+docker compose up -d        # start detached
+docker compose logs -f      # stream logs
+docker compose down         # stop (data preserved)
+docker volume rm ck-prod-data  # ⚠ permanently deletes all board state
+```
+
+---
+
 [Apache 2.0 © 2026 Cline Bot Inc.](./LICENSE)
